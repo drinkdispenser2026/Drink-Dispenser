@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Calculadora Financiera — Colombia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#fdf4f7;min-height:100vh;color:#2a1a2e}
+
+/* ── Layout ── */
+.shell{max-width:780px;margin:0 auto;padding:2rem 1.25rem 3rem}
+
+/* ── Header ── */
+.header{display:flex;align-items:center;gap:16px;margin-bottom:2rem}
+.logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#e91e8c,#9b27af);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo i{font-size:24px;color:#fff}
+.header-text h1{font-size:20px;font-weight:600;color:#2a1a2e;line-height:1.2}
+.header-text p{font-size:12px;color:#9c6b8a;margin-top:2px}
+
+/* ── Nav ── */
+.nav{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:#fff;border:1px solid #f0c8de;border-radius:14px;padding:5px;margin-bottom:1.75rem;box-shadow:0 1px 6px rgba(233,30,140,.07)}
+.nb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:none;border-radius:10px;background:transparent;color:#9c6b8a;cursor:pointer;font-size:11px;font-weight:500;transition:all .18s;line-height:1;font-family:'Inter',sans-serif}
+.nb i{font-size:19px}
+.nb.active{background:linear-gradient(135deg,#e91e8c,#9b27af);color:#fff;box-shadow:0 2px 10px rgba(233,30,140,.30)}
+.nb:hover:not(.active){background:#fdf0f7;color:#e91e8c}
+
+/* ── Panels ── */
+.panel{display:none}.panel.active{display:block}
+
+/* ── Card ── */
+.card{background:#fff;border:1px solid #f0c8de;border-radius:16px;overflow:hidden;margin-bottom:1.25rem;box-shadow:0 2px 12px rgba(233,30,140,.06)}
+.card-head{padding:1rem 1.25rem;border-bottom:1px solid #f9e4f0;display:flex;align-items:center;gap:10px;background:linear-gradient(to right,#fff5fb,#fff)}
+.card-dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#e91e8c,#9b27af);flex-shrink:0}
+.card-title{font-size:14px;font-weight:600;color:#2a1a2e}
+.card-sub{font-size:11px;color:#b07898;margin-left:auto}
+.card-body{padding:1.25rem}
+
+/* ── Subtabs ── */
+.stabs{display:flex;gap:5px;margin-bottom:1.1rem;flex-wrap:wrap}
+.stab{padding:5px 14px;font-size:12px;border-radius:20px;border:1px solid #f0c8de;background:#fff;color:#9c6b8a;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s}
+.stab.active{background:linear-gradient(135deg,#e91e8c,#9b27af);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(233,30,140,.25)}
+.stab:hover:not(.active){background:#fdf0f7;border-color:#e91e8c;color:#e91e8c}
+
+/* ── Form ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem}
+.fg3{grid-template-columns:1fr 1fr 1fr}
+.field label{display:block;font-size:10px;font-weight:600;color:#b07898;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.field input,.field select{width:100%;height:36px;padding:0 11px;border:1px solid #f0c8de;border-radius:8px;background:#fff9fc;color:#2a1a2e;font-size:13px;font-family:'Inter',sans-serif;transition:border .15s}
+.field input:focus,.field select:focus{outline:none;border-color:#e91e8c;background:#fff;box-shadow:0 0 0 3px rgba(233,30,140,.1)}
+
+/* ── Calc button ── */
+.calc-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;border:none;border-radius:10px;background:linear-gradient(135deg,#e91e8c,#9b27af);color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:1rem;font-family:'Inter',sans-serif;transition:opacity .15s;letter-spacing:.01em;box-shadow:0 3px 12px rgba(233,30,140,.30)}
+.calc-btn:hover{opacity:.88}
+.calc-btn i{font-size:16px}
+
+/* ── Result banner ── */
+.rband{background:linear-gradient(135deg,#fce4f3,#ede4fc);border:1px solid #e0a8d0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:.85rem;display:none}
+.rband.show{display:block}
+.rband-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9b27af;margin-bottom:5px}
+.rband-val{font-size:26px;font-weight:600;color:#6a1280}
+.rband-formula{display:inline-block;background:#fff;color:#9b27af;font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;border:1px solid #e0a8d0;margin-top:5px}
+
+/* ── Stat cards ── */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.85rem}
+.stat{background:#fff9fc;border:1px solid #f0c8de;border-radius:10px;padding:.85rem 1rem}
+.stat-lbl{font-size:11px;color:#b07898;margin-bottom:3px;font-weight:500}
+.stat-val{font-size:17px;font-weight:600;color:#2a1a2e}
+.stat.green{background:#f0fdf6;border-color:#b7e5cb}
+.stat.green .stat-lbl{color:#2e7d50}
+.stat.green .stat-val{color:#1a5e35}
+.stat4{grid-template-columns:repeat(4,1fr)}
+
+/* ── Table ── */
+.tbl-outer{overflow-x:auto;border-radius:10px;max-height:380px;overflow-y:auto;border:1px solid #f0c8de}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{position:sticky;top:0;z-index:2;text-align:right;padding:8px 10px;background:linear-gradient(to right,#f9e4f0,#f0e4f9);color:#6a1280;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e0a8d0;white-space:nowrap;font-family:'Inter',sans-serif}
+th:first-child,th:nth-child(2){text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #fce4f3;color:#2a1a2e;text-align:right;white-space:nowrap}
+td:first-child{text-align:center;font-weight:600;color:#e91e8c;background:#fff5fb;width:40px;font-size:11px}
+td:nth-child(2){text-align:left;color:#6a1280;font-weight:500}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fff5fb}
+
+/* ── Columns config ── */
+.cols-card{background:#fff9fc;border:1px solid #f0c8de;border-radius:10px;padding:.9rem 1rem;margin-bottom:1rem}
+.cols-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9b27af;margin-bottom:.7rem;display:flex;align-items:center;gap:6px}
+.cols-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:7px}
+.ctog{display:flex;align-items:center;gap:8px;font-size:12px;color:#2a1a2e;cursor:pointer;font-weight:500}
+.ctog input[type=checkbox]{accent-color:#e91e8c;width:14px;height:14px;cursor:pointer}
+
+/* ── Tip ── */
+.tip{font-size:11px;color:#9c6b8a;margin-bottom:1rem;padding:.6rem .85rem;background:#fff9fc;border-radius:8px;border-left:3px solid #e91e8c;line-height:1.5}
+
+/* ── Diagram ── */
+.diag-wrap{border:1px solid #f0c8de;border-radius:10px;background:#fff9fc;padding:.5rem;margin-top:.5rem}
+canvas{display:block;width:100%;border-radius:6px}
+
+/* ── Divider ── */
+.divider{height:1px;background:linear-gradient(to right,transparent,#f0c8de,transparent);margin:.75rem 0}
+
+.full{grid-column:1/-1}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="header">
+  <div class="logo"><i class="ti ti-chart-candle"></i></div>
+  <div class="header-text">
+    <h1>Calculadora financiera</h1>
+    <p>Tasas · Valor del dinero · Diagramas · Amortización — Colombia</p>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nb active" onclick="showP('tasas',this)"><i class="ti ti-arrows-exchange"></i>Tasas</button>
+  <button class="nb" onclick="showP('vdt',this)"><i class="ti ti-clock-dollar"></i>Valor dinero</button>
+  <button class="nb" onclick="showP('diag',this)"><i class="ti ti-chart-arrows-vertical"></i>Diagrama</button>
+  <button class="nb" onclick="showP('amort',this)"><i class="ti ti-table"></i>Amortización</button>
+</div>
+
+<!-- ═══════════════ TASAS ═══════════════ -->
+<div class="panel active" id="p-tasas">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-dot"></div>
+      <span class="card-title">Conversión de tasas de interés</span>
+      <span class="card-sub">Selecciona el tipo de conversión</span>
+    </div>
+    <div class="card-body" id="tasas-body">
+      <div class="stabs">
+        <button class="stab active" onclick="stab(this,'tasas-body','t-ne')">Nominal ↔ Efectiva</button>
+        <button class="stab" onclick="stab(this,'tasas-body','t-ap')">Anual ↔ Periódica</button>
+        <button class="stab" onclick="stab(this,'tasas-body','t-va')">Vencida ↔ Anticipada</button>
+      </div>
+
+      <div class="subpanel" id="t-ne">
+        <div class="fg">
+          <div class="field"><label>Tipo de conversión</label><select id="ne-dir"><option value="ne">Nominal → Efectiva</option><option value="en">Efectiva → Nominal</option></select></div>
+          <div class="field"><label>Tasa (%)</label><input type="number" id="ne-t" value="24" step="0.01"/></div>
+          <div class="field"><label>Capitalización</label><select id="ne-cap"></select></div>
+        </div>
+        <button class="calc-btn" onclick="calcNE()"><i class="ti ti-calculator"></i> Calcular conversión</button>
+        <div class="rband" id="r-ne">
+          <div class="rband-label" id="r-ne-l"></div>
+          <div class="rband-val" id="r-ne-v"></div>
+          <div class="rband-formula" id="r-ne-s"></div>
+        </div>
+      </div>
+
+      <div class="subpanel" id="t-ap" style="display:none">
+        <div class="fg">
+          <div class="field"><label>Tipo de conversión</label><select id="ap-dir"><option value="ap">Anual → Periódica</option><option value="pa">Periódica → Anual</option></select></div>
+          <div class="field"><label>Tasa (%)</label><input type="number" id="ap-t" value="12" step="0.01"/></div>
+          <div class="field"><label>Período</label><select id="ap-per"></select></div>
+        </div>
+        <button class="calc-btn" onclick="calcAP()"><i class="ti ti-calculator"></i> Calcular conversión</button>
+        <div class="rband" id="r-ap">
+          <div class="rband-label" id="r-ap-l"></div>
+          <div class="rband-val" id="r-ap-v"></div>
+          <div class="rband-formula" id="r-ap-s"></div>
+        </div>
+      </div>
+
+      <div class="subpanel" id="t-va" style="display:none">
+        <div class="tip"><i class="ti ti-info-circle"></i> Tasa vencida: se liquida al final del período. Tasa anticipada: se liquida al inicio del período.</div>
+        <div class="fg">
+          <div class="field"><label>Tipo de conversión</label><select id="va-dir"><option value="va">Vencida → Anticipada</option><option value="av">Anticipada → Vencida</option></select></div>
+          <div class="field"><label>Tasa (%)</label><input type="number" id="va-t" value="2" step="0.01"/></div>
+        </div>
+        <button class="calc-btn" onclick="calcVA()"><i class="ti ti-calculator"></i> Calcular conversión</button>
+        <div class="rband" id="r-va">
+          <div class="rband-label" id="r-va-l"></div>
+          <div class="rband-val" id="r-va-v"></div>
+          <div class="rband-formula" id="r-va-s"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ VDT ═══════════════ -->
+<div class="panel" id="p-vdt">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-dot"></div>
+      <span class="card-title">Valor del dinero en el tiempo</span>
+      <span class="card-sub">VP · VF · Anualidades</span>
+    </div>
+    <div class="card-body" id="vdt-body">
+      <div class="stabs">
+        <button class="stab active" onclick="stab(this,'vdt-body','v-vp')">Valor presente</button>
+        <button class="stab" onclick="stab(this,'vdt-body','v-vf')">Valor futuro</button>
+        <button class="stab" onclick="stab(this,'vdt-body','v-anu')">Anualidades</button>
+      </div>
+
+      <div class="subpanel" id="v-vp">
+        <div class="fg">
+          <div class="field"><label>Valor futuro (VF $)</label><input type="number" id="vp-vf" value="1000000"/></div>
+          <div class="field"><label>Tasa por período (%)</label><input type="number" id="vp-i" value="2" step="0.01"/></div>
+          <div class="field"><label>Períodos (n)</label><input type="number" id="vp-n" value="12"/></div>
+        </div>
+        <button class="calc-btn" onclick="calcVP()"><i class="ti ti-calculator"></i> Calcular valor presente</button>
+        <div id="r-vp" style="display:none">
+          <div class="rband show"><div class="rband-label">Valor presente (VP)</div><div class="rband-val" id="vp-r"></div><div class="rband-formula">VP = VF / (1+i)^n</div></div>
+          <div class="stat-row">
+            <div class="stat"><div class="stat-lbl">Valor futuro (VF)</div><div class="stat-val" id="vp-vf-r"></div></div>
+            <div class="stat green"><div class="stat-lbl">Intereses totales</div><div class="stat-val" id="vp-int"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subpanel" id="v-vf" style="display:none">
+        <div class="fg">
+          <div class="field"><label>Valor presente (VP $)</label><input type="number" id="vf-vp" value="500000"/></div>
+          <div class="field"><label>Tasa por período (%)</label><input type="number" id="vf-i" value="2" step="0.01"/></div>
+          <div class="field"><label>Períodos (n)</label><input type="number" id="vf-n" value="12"/></div>
+        </div>
+        <button class="calc-btn" onclick="calcVF()"><i class="ti ti-calculator"></i> Calcular valor futuro</button>
+        <div id="r-vf" style="display:none">
+          <div class="rband show"><div class="rband-label">Valor futuro (VF)</div><div class="rband-val" id="vf-r"></div><div class="rband-formula">VF = VP × (1+i)^n</div></div>
+          <div class="stat-row">
+            <div class="stat"><div class="stat-lbl">Valor presente (VP)</div><div class="stat-val" id="vf-vp-r"></div></div>
+            <div class="stat green"><div class="stat-lbl">Intereses generados</div><div class="stat-val" id="vf-int"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subpanel" id="v-anu" style="display:none">
+        <div class="fg">
+          <div class="field"><label>Calcular</label><select id="anu-tipo"><option value="vp">VP de anualidad</option><option value="vf">VF de anualidad</option><option value="c">Cuota dado VP</option></select></div>
+          <div class="field"><label>Cuota / Monto ($)</label><input type="number" id="anu-c" value="200000"/></div>
+          <div class="field"><label>Tasa por período (%)</label><input type="number" id="anu-i" value="2" step="0.01"/></div>
+          <div class="field"><label>Períodos (n)</label><input type="number" id="anu-n" value="12"/></div>
+          <div class="field"><label>Modalidad</label><select id="anu-mod"><option value="v">Vencida (ordinaria)</option><option value="a">Anticipada (due)</option></select></div>
+        </div>
+        <button class="calc-btn" onclick="calcAnu()"><i class="ti ti-calculator"></i> Calcular anualidad</button>
+        <div class="rband" id="r-anu">
+          <div class="rband-label" id="r-anu-l"></div>
+          <div class="rband-val" id="r-anu-v"></div>
+          <div class="rband-formula" id="r-anu-s"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DIAGRAMA ═══════════════ -->
+<div class="panel" id="p-diag">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-dot"></div>
+      <span class="card-title">Diagrama de flujo económico</span>
+      <span class="card-sub">Línea de tiempo de flujos</span>
+    </div>
+    <div class="card-body">
+      <div class="fg">
+        <div class="field"><label>Valor presente (VP $)</label><input type="number" id="d-vp" value="500000"/></div>
+        <div class="field"><label>Cuota periódica (C $)</label><input type="number" id="d-c" value="50000"/></div>
+        <div class="field"><label>Valor futuro (VF $)</label><input type="number" id="d-vf" value="0"/></div>
+        <div class="field"><label>Períodos (n)</label><input type="number" id="d-n" value="6" min="1" max="20"/></div>
+        <div class="field"><label>Tipo de cuota</label><select id="d-tipo"><option value="v">Vencida</option><option value="a">Anticipada</option></select></div>
+        <div class="field"><label>Perspectiva</label><select id="d-persp"><option value="1">Prestamista</option><option value="-1">Prestatario</option></select></div>
+      </div>
+      <button class="calc-btn" onclick="drawDiag()"><i class="ti ti-chart-arrows-vertical"></i> Generar diagrama</button>
+      <div class="diag-wrap"><canvas id="dCanvas" role="img" aria-label="Diagrama de flujo económico"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AMORTIZACIÓN ═══════════════ -->
+<div class="panel" id="p-amort">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-dot"></div>
+      <span class="card-title">Tabla de amortización</span>
+      <span class="card-sub">Cuota constante · Cuota decreciente</span>
+    </div>
+    <div class="card-body">
+      <div class="stabs">
+        <button class="stab active" onclick="setAM(this,'cc')">Cuota constante (francés)</button>
+        <button class="stab" onclick="setAM(this,'cd')">Cuota decreciente (alemán)</button>
+      </div>
+      <div class="fg fg3">
+        <div class="field"><label>Capital (VP $)</label><input type="number" id="am-cap" value="10000000"/></div>
+        <div class="field"><label>Tasa por período (%)</label><input type="number" id="am-tasa" value="2" step="0.01"/></div>
+        <div class="field"><label>Número de períodos</label><input type="number" id="am-n" value="12" min="1" max="480"/></div>
+        <div class="field"><label>Fecha inicio</label><input type="date" id="am-fecha" value="2024-01-01"/></div>
+        <div class="field"><label>Frecuencia de pago</label><select id="am-per"></select></div>
+      </div>
+
+      <div class="cols-card">
+        <div class="cols-lbl"><i class="ti ti-adjustments-horizontal"></i> Columnas opcionales</div>
+        <div class="cols-grid">
+          <label class="ctog"><input type="checkbox" id="col-sv" onchange="toggleCols()"> Seguro de vida</label>
+          <label class="ctog"><input type="checkbox" id="col-sr" onchange="toggleCols()"> Seguro todo riesgo</label>
+          <label class="ctog"><input type="checkbox" id="col-ab" onchange="toggleCols()"> Abono extraordinario</label>
+          <label class="ctog"><input type="checkbox" id="col-ia" checked onchange="toggleCols()"> Interés acumulado</label>
+        </div>
+        <div id="extra-inputs" style="margin-top:.75rem;display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+      </div>
+
+      <button class="calc-btn" onclick="calcAmort()"><i class="ti ti-table"></i> Generar tabla de amortización</button>
+
+      <div id="am-sum" style="display:none;margin-bottom:1.25rem">
+        <div class="stat-row stat4">
+          <div class="stat"><div class="stat-lbl">Cuota</div><div class="stat-val" id="am-q"></div></div>
+          <div class="stat green"><div class="stat-lbl">Total intereses</div><div class="stat-val" id="am-ti"></div></div>
+          <div class="stat"><div class="stat-lbl">Total seguros</div><div class="stat-val" id="am-ts"></div></div>
+          <div class="stat green"><div class="stat-lbl">Total a pagar</div><div class="stat-val" id="am-tp"></div></div>
+        </div>
+      </div>
+      <div id="am-tbl"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+const PER=[
+  {l:'Diario (m=365)',m:365,dias:1,n:'diaria'},
+  {l:'Mensual (m=12)',m:12,dias:30,n:'mensual'},
+  {l:'Bimestral (m=6)',m:6,dias:60,n:'bimestral'},
+  {l:'Trimestral (m=4)',m:4,dias:90,n:'trimestral'},
+  {l:'Cuatrimestral (m=3)',m:3,dias:120,n:'cuatrimestral'},
+  {l:'Semestral (m=2)',m:2,dias:180,n:'semestral'},
+  {l:'Anual (m=1)',m:1,dias:360,n:'anual'},
+];
+function fillSel(id,def){
+  const s=document.getElementById(id);
+  PER.forEach((p,i)=>{const o=document.createElement('option');o.value=p.m;o.textContent=p.l;if(i===def)o.selected=true;s.appendChild(o);});
+}
+function getPer(m){return PER.find(p=>p.m==m)||PER[1];}
+const fm=v=>new Intl.NumberFormat('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
+const pc=v=>v.toFixed(4)+'%';
+let amMode='cc';
+
+function showP(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function stab(btn,group,id){
+  document.querySelectorAll('#'+group+' .stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#'+group+' .subpanel').forEach(p=>p.style.display='none');
+  document.getElementById(id).style.display='block';
+}
+function showR(id,l,v,s){
+  const b=document.getElementById(id);
+  document.getElementById(id+'-l').textContent=l;
+  document.getElementById(id+'-v').textContent=v;
+  document.getElementById(id+'-s').textContent=s;
+  b.classList.add('show');
+}
+
+function calcNE(){
+  const dir=document.getElementById('ne-dir').value;
+  const t=parseFloat(document.getElementById('ne-t').value)/100;
+  const m=parseInt(document.getElementById('ne-cap').value);
+  let res,l,s;
+  if(dir==='ne'){res=Math.pow(1+t/m,m)-1;l='Tasa efectiva anual (TEA)';s='(1 + i_n/m)^m − 1';}
+  else{res=m*(Math.pow(1+t,1/m)-1);l='Tasa nominal anual (TNA)';s='m × ((1+i_e)^(1/m) − 1)';}
+  showR('r-ne',l,pc(res*100),s);
+}
+function calcAP(){
+  const dir=document.getElementById('ap-dir').value;
+  const t=parseFloat(document.getElementById('ap-t').value)/100;
+  const m=parseInt(document.getElementById('ap-per').value);
+  let res,l,s;
+  if(dir==='ap'){res=Math.pow(1+t,1/m)-1;l='Tasa efectiva '+getPer(m).n;s='(1+i_a)^(1/m) − 1';}
+  else{res=Math.pow(1+t,m)-1;l='Tasa efectiva anual';s='(1+i_p)^m − 1';}
+  showR('r-ap',l,pc(res*100),s);
+}
+function calcVA(){
+  const dir=document.getElementById('va-dir').value;
+  const t=parseFloat(document.getElementById('va-t').value)/100;
+  let res,l,s;
+  if(dir==='va'){res=t/(1+t);l='Tasa anticipada';s='i_v / (1 + i_v)';}
+  else{res=t/(1-t);l='Tasa vencida';s='i_a / (1 − i_a)';}
+  showR('r-va',l,pc(res*100),s);
+}
+function calcVP(){
+  const vf=parseFloat(document.getElementById('vp-vf').value);
+  const i=parseFloat(document.getElementById('vp-i').value)/100;
+  const n=parseInt(document.getElementById('vp-n').value);
+  const vp=vf/Math.pow(1+i,n);
+  document.getElementById('vp-r').textContent='$'+fm(vp);
+  document.getElementById('vp-vf-r').textContent='$'+fm(vf);
+  document.getElementById('vp-int').textContent='$'+fm(vf-vp);
+  document.getElementById('r-vp').style.display='block';
+}
+function calcVF(){
+  const vp=parseFloat(document.getElementById('vf-vp').value);
+  const i=parseFloat(document.getElementById('vf-i').value)/100;
+  const n=parseInt(document.getElementById('vf-n').value);
+  const vf=vp*Math.pow(1+i,n);
+  document.getElementById('vf-r').textContent='$'+fm(vf);
+  document.getElementById('vf-vp-r').textContent='$'+fm(vp);
+  document.getElementById('vf-int').textContent='$'+fm(vf-vp);
+  document.getElementById('r-vf').style.display='block';
+}
+function calcAnu(){
+  const tipo=document.getElementById('anu-tipo').value;
+  const c=parseFloat(document.getElementById('anu-c').value);
+  const i=parseFloat(document.getElementById('anu-i').value)/100;
+  const n=parseInt(document.getElementById('anu-n').value);
+  const due=document.getElementById('anu-mod').value==='a'?1:0;
+  const fac=due?(1+i):1;
+  let res,l,s;
+  if(tipo==='vp'){res=c*((1-Math.pow(1+i,-n))/i)*fac;l='Valor presente';s='C × [(1-(1+i)^-n)/i]'+(due?' × (1+i)':'');}
+  else if(tipo==='vf'){res=c*((Math.pow(1+i,n)-1)/i)*fac;l='Valor futuro';s='C × [(1+i)^n-1]/i'+(due?' × (1+i)':'');}
+  else{res=c*i/(1-Math.pow(1+i,-n))/(due?(1+i):1);l='Cuota periódica';s='VP × i / [1-(1+i)^-n]';}
+  showR('r-anu',l,'$'+fm(res),s);
+}
+function setAM(btn,m){
+  amMode=m;
+  document.querySelectorAll('#p-amort .stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('am-sum').style.display='none';
+  document.getElementById('am-tbl').innerHTML='';
+}
+function toggleCols(){
+  const wrap=document.getElementById('extra-inputs');wrap.innerHTML='';
+  if(document.getElementById('col-sv').checked)wrap.innerHTML+='<div class="field"><label>Seguro vida ($ por período)</label><input type="number" id="v-sv" value="15000" step="1000"/></div>';
+  if(document.getElementById('col-sr').checked)wrap.innerHTML+='<div class="field"><label>Seguro todo riesgo ($ por período)</label><input type="number" id="v-sr" value="20000" step="1000"/></div>';
+  if(document.getElementById('col-ab').checked)wrap.innerHTML+='<div class="field" style="grid-column:1/-1"><label>Abonos extraordinarios (período:monto — ej: 3:500000,6:1000000)</label><input type="text" id="v-ab" placeholder="ej: 3:500000,6:1000000"/></div>';
+}
+function parseAbonos(s){const m={};if(!s||!s.trim())return m;s.split(',').forEach(p=>{const[k,v]=p.split(':');if(k&&v)m[parseInt(k.trim())]=parseFloat(v.trim())||0;});return m;}
+function addFecha(base,perM,n){
+  const d=new Date(base);
+  d.setDate(d.getDate()+getPer(perM).dias*n);
+  return d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function calcAmort(){
+  const P=parseFloat(document.getElementById('am-cap').value);
+  const i=parseFloat(document.getElementById('am-tasa').value)/100;
+  const n=parseInt(document.getElementById('am-n').value);
+  const fecha=document.getElementById('am-fecha').value||'2024-01-01';
+  const perM=parseInt(document.getElementById('am-per').value);
+  const sv=document.getElementById('col-sv').checked;
+  const sr=document.getElementById('col-sr').checked;
+  const ab=document.getElementById('col-ab').checked;
+  const ia=document.getElementById('col-ia').checked;
+  const svV=sv?(parseFloat(document.getElementById('v-sv')?.value)||0):0;
+  const srV=sr?(parseFloat(document.getElementById('v-sr')?.value)||0):0;
+  const abMap=ab?parseAbonos(document.getElementById('v-ab')?.value):{};
+  let rows=[],saldo=P,intAcum=0,totalInt=0,totalSeg=0,totalPagar=0;
+  if(amMode==='cc'){
+    const cuota=P*i/(1-Math.pow(1+i,-n));
+    document.getElementById('am-q').textContent='$'+fm(cuota);
+    for(let k=1;k<=n;k++){
+      const int=saldo*i,cap=cuota-int,abono=abMap[k]||0;
+      intAcum+=int;saldo-=(cap+abono);
+      const seg=svV+srV,vap=cuota+seg+abono;
+      totalInt+=int;totalSeg+=seg;totalPagar+=vap;
+      rows.push({k,f:addFecha(fecha,perM,k),monto:P,cap,int,intAcum,cuota,sv:svV,sr:srV,abono,saldo:Math.max(0,saldo),vap});
+      if(saldo<=0.01)break;
+    }
+  } else {
+    const capPer=P/n;
+    document.getElementById('am-q').textContent='Variable';
+    for(let k=1;k<=n;k++){
+      const int=saldo*i,cuota=capPer+int,abono=abMap[k]||0;
+      intAcum+=int;saldo-=(capPer+abono);
+      const seg=svV+srV,vap=cuota+seg+abono;
+      totalInt+=int;totalSeg+=seg;totalPagar+=vap;
+      rows.push({k,f:addFecha(fecha,perM,k),monto:P,cap:capPer,int,intAcum,cuota,sv:svV,sr:srV,abono,saldo:Math.max(0,saldo),vap});
+      if(saldo<=0.01)break;
+    }
+  }
+  document.getElementById('am-ti').textContent='$'+fm(totalInt);
+  document.getElementById('am-ts').textContent='$'+fm(totalSeg);
+  document.getElementById('am-tp').textContent='$'+fm(totalPagar);
+  document.getElementById('am-sum').style.display='block';
+  let h=`<tr><th>#</th><th>Fecha</th><th>Monto</th><th>Capital</th><th>Interés</th>${ia?'<th>Int. acum.</th>':''}<th>Cuota</th>${sv?'<th>Seg. vida</th>':''}${sr?'<th>Seg. riesgo</th>':''}${ab?'<th>Abono extra</th>':''}<th>Saldo</th><th>Valor a pagar</th></tr>`;
+  let trs=rows.map(r=>`<tr><td>${r.k}</td><td>${r.f}</td><td>$${fm(r.monto)}</td><td>$${fm(r.cap)}</td><td>$${fm(r.int)}</td>${ia?`<td>$${fm(r.intAcum)}</td>`:''}<td>$${fm(r.cuota)}</td>${sv?`<td>$${fm(r.sv)}</td>`:''}${sr?`<td>$${fm(r.sr)}</td>`:''}${ab?`<td>${r.abono>0?'$'+fm(r.abono):'—'}</td>`:''}<td>$${fm(r.saldo)}</td><td>$${fm(r.vap)}</td></tr>`).join('');
+  document.getElementById('am-tbl').innerHTML=`<div class="tbl-outer"><table><thead>${h}</thead><tbody>${trs}</tbody></table></div>`;
+}
+function drawDiag(){
+  const vp=parseFloat(document.getElementById('d-vp').value)||0;
+  const c=parseFloat(document.getElementById('d-c').value)||0;
+  const vf=parseFloat(document.getElementById('d-vf').value)||0;
+  const n=Math.min(20,Math.max(1,parseInt(document.getElementById('d-n').value)||6));
+  const tipo=document.getElementById('d-tipo').value;
+  const sign=parseInt(document.getElementById('d-persp').value);
+  const cv=document.getElementById('dCanvas');
+  const W=cv.parentElement.offsetWidth-16||700,H=270;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const tc='#2a1a2e',lc='#f0c8de';
+  const uc='#e91e8c',dc='#9b27af';
+  const pad=64,axY=H/2,step=(W-2*pad)/n,arH=76;
+  ctx.strokeStyle=lc;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(pad,axY);ctx.lineTo(W-pad+16,axY);ctx.stroke();
+  ctx.fillStyle=lc;ctx.beginPath();ctx.moveTo(W-pad+16,axY-6);ctx.lineTo(W-pad+23,axY);ctx.lineTo(W-pad+16,axY+6);ctx.fill();
+  for(let k=0;k<=n;k++){
+    const x=pad+k*step;
+    ctx.strokeStyle=lc;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(x,axY-6);ctx.lineTo(x,axY+6);ctx.stroke();
+    ctx.fillStyle=tc;ctx.font='12px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText(k,x,axY+20);
+  }
+  ctx.fillStyle='#9c6b8a';ctx.font='11px Inter,sans-serif';ctx.textAlign='left';
+  ctx.fillText('Período',W-pad+6,axY-16);
+  function arr(x,amt,lbl,up){
+    const col=up?uc:dc,yE=up?axY-arH:axY+arH;
+    ctx.strokeStyle=col;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(x,axY);ctx.lineTo(x,yE);ctx.stroke();
+    ctx.fillStyle=col;ctx.beginPath();
+    if(up){ctx.moveTo(x,yE-10);ctx.lineTo(x-7,yE);ctx.lineTo(x+7,yE);}
+    else{ctx.moveTo(x,yE+10);ctx.lineTo(x-7,yE);ctx.lineTo(x+7,yE);}
+    ctx.fill();
+    const lv=new Intl.NumberFormat('es-CO',{notation:'compact',maximumFractionDigits:1}).format(amt);
+    ctx.fillStyle=col;ctx.font='bold 10px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText(lbl+' $'+lv,x,up?yE-16:yE+24);
+  }
+  const isUp=sign>0;
+  if(vp>0)arr(pad,vp,'VP',isUp);
+  if(vf>0)arr(pad+n*step,vf,'VF',!isUp);
+  if(c>0){const st=tipo==='a'?0:1,en=tipo==='a'?n-1:n;for(let k=st;k<=en;k++)arr(pad+k*step,c,'C',!isUp);}
+}
+fillSel('ne-cap',1);fillSel('ap-per',1);fillSel('am-per',1);
+drawDiag();
+</script>
+</body>
+</html>
